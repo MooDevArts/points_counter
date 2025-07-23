@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1090413429643",
+    "firebase_url": "https://points-counter-11f6d-default-rtdb.firebaseio.com",
+    "project_id": "points-counter-11f6d",
+    "storage_bucket": "points-counter-11f6d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1090413429643:android:aba5b453d0bc7f18f0e58e",
+        "android_client_info": {
+          "package_name": "com.spiderwebarts.points_counter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNith4-sml0XbUEHgLLwLCo4OMCgLiQ7Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
