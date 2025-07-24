@@ -34,7 +34,7 @@ class _SigninScreenState extends State<SigninScreen> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  signIn(emailController, passwordController);
+                  signIn(emailController, passwordController, mounted, context);
                 },
                 child: Text('Register / Sign In'),
               ),
