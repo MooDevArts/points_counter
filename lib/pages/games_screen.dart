@@ -47,6 +47,8 @@ class _GamesScreenState extends State<GamesScreen> {
                 },
                 child: Text('Create Game'),
               ),
+              SizedBox(height: 20),
+              Text('Existing Games:'),
               Expanded(
                 child: StreamBuilder<DatabaseEvent>(
                   stream: gamesRef.onValue,
@@ -69,8 +71,17 @@ class _GamesScreenState extends State<GamesScreen> {
                         final game = Map<String, dynamic>.from(gamesMap[key]);
                         final date = game['date'] ?? 'No date';
                         return InkWell(
-                          child: Card(child: Center(child: Text('$date'))),
-
+                          child: Column(
+                            children: [
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Center(child: Text('$date')),
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                            ],
+                          ),
                           onTap: () {
                             Navigator.push(
                               context,
