@@ -1,7 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:keyboard_actions/keyboard_actions.dart';
 
 class PointsScreen extends StatefulWidget {
   final DatabaseReference playersRef;
@@ -178,6 +177,21 @@ class _PointsScreenState extends State<PointsScreen> {
             },
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.red,
+        onPressed: () async {
+          // Assuming you have the gameRef path as parent of playersRef
+          final gameRef = widget.playersRef.parent;
+          if (gameRef != null) {
+            await gameRef.remove();
+            if (context.mounted) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            }
+          }
+        },
+        tooltip: 'Delete Game',
+        child: Icon(Icons.delete, color: Colors.white),
       ),
     );
   }
