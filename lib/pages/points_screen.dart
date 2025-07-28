@@ -181,12 +181,32 @@ class _PointsScreenState extends State<PointsScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.red,
         onPressed: () async {
-          // Assuming you have the gameRef path as parent of playersRef
-          final gameRef = widget.playersRef.parent;
-          if (gameRef != null) {
-            await gameRef.remove();
-            if (context.mounted) {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Delete Game'),
+              content: Text(
+                'Are you sure you want to delete this game? This action cannot be undone.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+          );
+          if (confirm == true) {
+            final gameRef = widget.playersRef.parent;
+            if (gameRef != null) {
+              await gameRef.remove();
+              if (context.mounted) {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
             }
           }
         },
