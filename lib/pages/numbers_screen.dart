@@ -51,7 +51,7 @@ class _NumbersScreenState extends State<NumbersScreen> {
                     int.parse(noOfPlayers.text),
                   );
                   if (mounted) {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (context) => NamesScreen(

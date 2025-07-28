@@ -66,7 +66,7 @@ class _NamesScreenState extends State<NamesScreen> {
 
                 if (mounted) {
                   // Go back to the previous screen
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) =>

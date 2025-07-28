@@ -11,7 +11,7 @@ signIn(emailController, passwordController, mounted, context) async {
           password: passwordController.text.trim(),
         );
     if (mounted) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const GamesScreen()),
       );
@@ -28,7 +28,7 @@ signIn(emailController, passwordController, mounted, context) async {
               password: passwordController.text.trim(),
             );
         if (mounted) {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const GamesScreen()),
           );
