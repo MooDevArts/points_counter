@@ -33,7 +33,7 @@ class _NamesScreenState extends State<NamesScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Names Screen')),
       body: Padding(
-        padding: EdgeInsets.all(50),
+        padding: EdgeInsets.only(top: 50, left: 50, right: 50),
         child: ListView(
           children: [
             ...List.generate(widget.numberOfPlayers, (index) {
