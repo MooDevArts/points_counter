@@ -223,19 +223,19 @@ class PointsUpdateForm extends StatefulWidget {
   final DatabaseReference playersRef;
 
   const PointsUpdateForm({
-    super.key,
+    Key? key,
     required this.playerKeys,
     required this.playerNames,
     required this.playersRef,
-  });
+  }) : super(key: key);
 
   @override
-  State<PointsUpdateForm> createState() => _PointsUpdateFormState();
+  _PointsUpdateFormState createState() => _PointsUpdateFormState();
 }
 
 class _PointsUpdateFormState extends State<PointsUpdateForm> {
   late List<TextEditingController> controllers;
-  late List<FocusNode> focusNodes;
+  late List<double> sliderValues;
 
   @override
   void initState() {
@@ -244,7 +244,7 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
       widget.playerKeys.length,
       (_) => TextEditingController(),
     );
-    focusNodes = List.generate(widget.playerKeys.length, (_) => FocusNode());
+    sliderValues = List.generate(widget.playerKeys.length, (_) => 0.0);
   }
 
   @override
@@ -252,32 +252,15 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
     for (final c in controllers) {
       c.dispose();
     }
-    for (final f in focusNodes) {
-      f.dispose();
-    }
     super.dispose();
   }
 
   Future<void> _submit() async {
-    // Check all fields are filled and valid numbers
-    for (final c in controllers) {
-      if (c.text.trim().isEmpty || int.tryParse(c.text.trim()) == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Enter all points')));
-        return;
-      }
-    }
-
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration(milliseconds: 300));
-
     // Update points in Firebase
     for (int i = 0; i < widget.playerKeys.length; i++) {
       final key = widget.playerKeys[i];
-      final enteredPoints = int.parse(controllers[i].text.trim());
+      final enteredPoints = sliderValues[i].toInt(); // Use slider value
       final playerRef = widget.playersRef.child(key).child('points');
-      // Use a transaction to add the entered points to the existing value
       await playerRef.runTransaction((currentData) {
         final currentPoints = (currentData as int?) ?? 0;
         return Transaction.success(currentPoints + enteredPoints);
@@ -287,50 +270,60 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Updated successfully')));
-
-    // Optionally clear the fields
-    for (final c in controllers) {
-      c.clear();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      child: Column(
-        children: [
-          ...List.generate(widget.playerKeys.length, (i) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: TextFormField(
-                controller: controllers[i],
-                focusNode: focusNodes[i],
-                keyboardType: TextInputType.numberWithOptions(
-                  signed: false,
-                  decimal: false,
+    return Column(
+      children: [
+        ...List.generate(widget.playerKeys.length, (i) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${widget.playerNames[i]}:'),
+                Slider(
+                  min: -2,
+                  max: 50,
+                  divisions: 12,
+                  label: sliderValues[i].round().toString(),
+                  value: sliderValues[i],
+                  onChanged: (value) {
+                    setState(() {
+                      sliderValues[i] = value;
+                      controllers[i].text = value
+                          .round()
+                          .toString(); // Update text field
+                    });
+                  },
                 ),
-                textInputAction: i == widget.playerKeys.length - 1
-                    ? TextInputAction.done
-                    : TextInputAction.next,
-                onFieldSubmitted: (value) {
-                  if (value.trim().isEmpty) return;
-                  if (i < controllers.length - 1) {
-                    FocusScope.of(context).requestFocus(focusNodes[i + 1]);
-                  } else {
-                    _submit();
-                  }
-                },
-                decoration: InputDecoration(
-                  labelText: 'Add points for ${widget.playerNames[i]}',
-                  border: OutlineInputBorder(),
+                TextFormField(
+                  controller: controllers[i],
+                  keyboardType: TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: false,
+                  ),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Enter points',
+                  ),
+                  onChanged: (value) {
+                    final number = double.tryParse(value);
+                    if (number != null && number >= -2 && number <= 10) {
+                      setState(() {
+                        sliderValues[i] = number; // Update slider
+                      });
+                    }
+                  },
                 ),
-              ),
-            );
-          }),
-          SizedBox(height: 12),
-          ElevatedButton(onPressed: _submit, child: Text('Submit')),
-        ],
-      ),
+              ],
+            ),
+          );
+        }),
+        SizedBox(height: 12),
+        ElevatedButton(onPressed: _submit, child: Text('Submit')),
+      ],
     );
   }
 }
