@@ -256,6 +256,24 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
   }
 
   Future<void> _submit() async {
+    // Validate all fields have values and are within range
+    for (int i = 0; i < widget.playerKeys.length; i++) {
+      if (controllers[i].text.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Please fill all values')));
+        return;
+      }
+      final number = double.tryParse(controllers[i].text);
+      if (number == null || number < -2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invalid value: ${widget.playerNames[i]}')),
+        );
+        return;
+      }
+      sliderValues[i] = number;
+    }
+
     // Update points in Firebase
     for (int i = 0; i < widget.playerKeys.length; i++) {
       final key = widget.playerKeys[i];
@@ -270,6 +288,17 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Updated successfully')));
+
+    // Clear the form fields
+    setState(() {
+      for (int i = 0; i < widget.playerKeys.length; i++) {
+        controllers[i].clear(); // Clear text field
+        sliderValues[i] = 0.0; // Reset slider value
+      }
+    });
+
+    // Remove focus from all fields
+    FocusScope.of(context).unfocus();
   }
 
   @override
@@ -286,7 +315,7 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
                 Slider(
                   min: -2,
                   max: 50,
-                  divisions: 12,
+                  divisions: 50,
                   label: sliderValues[i].round().toString(),
                   value: sliderValues[i],
                   onChanged: (value) {
@@ -308,14 +337,6 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
                     border: OutlineInputBorder(),
                     labelText: 'Enter points',
                   ),
-                  onChanged: (value) {
-                    final number = double.tryParse(value);
-                    if (number != null && number >= -2 && number <= 10) {
-                      setState(() {
-                        sliderValues[i] = number; // Update slider
-                      });
-                    }
-                  },
                 ),
               ],
             ),
@@ -323,6 +344,7 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
         }),
         SizedBox(height: 12),
         ElevatedButton(onPressed: _submit, child: Text('Submit')),
+        SizedBox(height: 50),
       ],
     );
   }
