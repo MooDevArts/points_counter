@@ -14,16 +14,36 @@ class _PointsScreenState extends State<PointsScreen> {
   // Define a list of colors for the bars
   final List<Color> barColors = [
     Colors.blue,
-    Colors.red,
+    Colors.purple,
     Colors.green,
     Colors.orange,
-    Colors.purple,
+    Colors.red,
     Colors.teal,
     Colors.amber,
     Colors.pink,
     Colors.brown,
     Colors.indigo,
   ];
+  int roundsPlayed = 0;
+  String? playerWithLeastPoints;
+
+  @override
+  void initState() {
+    super.initState();
+    _getRoundsPlayed();
+  }
+
+  Future<void> _getRoundsPlayed() async {
+    final gameRef = widget.playersRef.parent;
+    if (gameRef != null) {
+      final snapshot = await gameRef.child('roundsPlayed').get();
+      if (snapshot.exists) {
+        setState(() {
+          roundsPlayed = (snapshot.value as num).toInt();
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,92 +105,117 @@ class _PointsScreenState extends State<PointsScreen> {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    height: 320,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 40),
-                      child: BarChart(
-                        BarChartData(
-                          barGroups: barGroups,
-                          borderData: FlBorderData(show: false),
-                          gridData: FlGridData(show: false),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                                reservedSize: 32,
-                                getTitlesWidget: (value, meta) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 4.0),
-                                    child: Text(
-                                      value.toInt().toString(),
-                                      style: TextStyle(fontSize: 10),
-                                      textAlign: TextAlign.right,
-                                    ),
-                                  );
-                                },
-                                interval: 1,
+                  if (roundsPlayed > 0)
+                    SizedBox(
+                      height: 320,
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 40),
+                        child: BarChart(
+                          BarChartData(
+                            barGroups: barGroups,
+                            borderData: FlBorderData(show: false),
+                            gridData: FlGridData(show: false),
+                            titlesData: FlTitlesData(
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: false,
+                                  reservedSize: 32,
+                                  getTitlesWidget: (value, meta) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 4.0,
+                                      ),
+                                      child: Text(
+                                        value.toInt().toString(),
+                                        style: TextStyle(fontSize: 10),
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    );
+                                  },
+                                  interval: 1,
+                                ),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget:
+                                      (double value, TitleMeta meta) {
+                                        final idx = value.toInt();
+                                        if (idx < 0 ||
+                                            idx >= playerNames.length)
+                                          return Container();
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8.0,
+                                          ),
+                                          child: Text(
+                                            '${playerNames[idx]}',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        );
+                                      },
+                                ),
                               ),
                             ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget:
-                                    (double value, TitleMeta meta) {
-                                      final idx = value.toInt();
-                                      if (idx < 0 || idx >= playerNames.length)
-                                        return Container();
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 8.0,
-                                        ),
-                                        child: Text(
-                                          '${playerNames[idx]}',
-                                          style: TextStyle(fontSize: 12),
+                            barTouchData: BarTouchData(
+                              enabled: false,
+
+                              touchTooltipData: BarTouchTooltipData(
+                                tooltipMargin: 8,
+                                // tooltipBgColor: Colors.black87,
+                                tooltipPadding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                getTooltipItem:
+                                    (group, groupIndex, rod, rodIndex) {
+                                      return BarTooltipItem(
+                                        '${playerPoints[group.x].toInt()}',
+                                        TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
                                         ),
                                       );
                                     },
                               ),
                             ),
                           ),
-                          barTouchData: BarTouchData(
-                            enabled: false,
-
-                            touchTooltipData: BarTouchTooltipData(
-                              tooltipMargin: 8,
-                              // tooltipBgColor: Colors.black87,
-                              tooltipPadding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              getTooltipItem:
-                                  (group, groupIndex, rod, rodIndex) {
-                                    return BarTooltipItem(
-                                      '${playerPoints[group.x].toInt()}',
-                                      TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 10,
-                                      ),
-                                    );
-                                  },
-                            ),
-                          ),
                         ),
                       ),
                     ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Rounds Played: $roundsPlayed',
+                    style: TextStyle(fontSize: 12),
                   ),
-                  SizedBox(height: 16),
+                  if (roundsPlayed > 0)
+                    Text(
+                      'Last Round Winner: $playerWithLeastPoints',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  // SizedBox(height: 8),
                   PointsUpdateForm(
                     playerKeys: playerKeys,
                     playerNames: playerNames,
                     playersRef: widget.playersRef,
+                    roundsPlayed: roundsPlayed,
+                    onRoundUpdated: (int newRoundsPlayed) {
+                      setState(() {
+                        roundsPlayed = newRoundsPlayed;
+                      });
+                    },
+                    onLeastPointsPlayerUpdated: (String? player) {
+                      setState(() {
+                        playerWithLeastPoints = player;
+                      });
+                    },
                   ),
                 ],
               );
@@ -221,12 +266,18 @@ class PointsUpdateForm extends StatefulWidget {
   final List<String> playerKeys;
   final List<String> playerNames;
   final DatabaseReference playersRef;
+  final int roundsPlayed;
+  final Function(int) onRoundUpdated;
+  final Function(String?) onLeastPointsPlayerUpdated;
 
   const PointsUpdateForm({
     Key? key,
     required this.playerKeys,
     required this.playerNames,
     required this.playersRef,
+    required this.roundsPlayed,
+    required this.onRoundUpdated,
+    required this.onLeastPointsPlayerUpdated,
   }) : super(key: key);
 
   @override
@@ -285,9 +336,31 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
       });
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Updated successfully')));
+    // Update roundsPlayed in Firebase
+    final newRoundsPlayed = widget.roundsPlayed + 1; // Increment roundsPlayed
+    final gameRef = widget.playersRef.parent;
+    if (gameRef != null) {
+      await gameRef.update({'roundsPlayed': newRoundsPlayed});
+    }
+    widget.onRoundUpdated(newRoundsPlayed); // Update the value in PointsScreen
+
+    String? leastPointsPlayer;
+    double leastPoints = double.infinity;
+    for (int i = 0; i < widget.playerKeys.length; i++) {
+      if (sliderValues[i] < leastPoints) {
+        leastPoints = sliderValues[i];
+        leastPointsPlayer = widget.playerNames[i];
+      }
+    }
+
+    widget.onLeastPointsPlayerUpdated(leastPointsPlayer);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Updated successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
 
     // Clear the form fields
     setState(() {
