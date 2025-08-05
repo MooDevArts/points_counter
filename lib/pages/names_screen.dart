@@ -70,7 +70,7 @@ class _NamesScreenState extends State<NamesScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          PointsScreen(playersRef: playersRef),
+                          PointsScreen(playersRef: playersRef, roundsPlayed: 0),
                     ),
                   );
                 }

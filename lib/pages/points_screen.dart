@@ -4,7 +4,12 @@ import 'package:fl_chart/fl_chart.dart';
 
 class PointsScreen extends StatefulWidget {
   final DatabaseReference playersRef;
-  const PointsScreen({super.key, required this.playersRef});
+  final int roundsPlayed;
+  const PointsScreen({
+    super.key,
+    required this.playersRef,
+    required this.roundsPlayed,
+  });
 
   @override
   State<PointsScreen> createState() => _PointsScreenState();
@@ -26,23 +31,12 @@ class _PointsScreenState extends State<PointsScreen> {
   ];
   int roundsPlayed = 0;
   String? playerWithLeastPoints;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _getRoundsPlayed();
-  }
-
-  Future<void> _getRoundsPlayed() async {
-    final gameRef = widget.playersRef.parent;
-    if (gameRef != null) {
-      final snapshot = await gameRef.child('roundsPlayed').get();
-      if (snapshot.exists) {
-        setState(() {
-          roundsPlayed = (snapshot.value as num).toInt();
-        });
-      }
-    }
+    roundsPlayed = widget.roundsPlayed;
   }
 
   @override
@@ -50,6 +44,7 @@ class _PointsScreenState extends State<PointsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Points Screen')),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 0),
           child: StreamBuilder<DatabaseEvent>(
@@ -193,12 +188,12 @@ class _PointsScreenState extends State<PointsScreen> {
                   SizedBox(height: 8),
                   Text(
                     'Rounds Played: $roundsPlayed',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
-                  if (roundsPlayed > 0)
+                  if (roundsPlayed > 0 && playerWithLeastPoints != null)
                     Text(
                       'Last Round Winner: $playerWithLeastPoints',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   // SizedBox(height: 8),
                   PointsUpdateForm(
@@ -216,6 +211,7 @@ class _PointsScreenState extends State<PointsScreen> {
                         playerWithLeastPoints = player;
                       });
                     },
+                    scrollController: _scrollController,
                   ),
                 ],
               );
@@ -269,6 +265,7 @@ class PointsUpdateForm extends StatefulWidget {
   final int roundsPlayed;
   final Function(int) onRoundUpdated;
   final Function(String?) onLeastPointsPlayerUpdated;
+  final ScrollController? scrollController;
 
   const PointsUpdateForm({
     Key? key,
@@ -278,6 +275,7 @@ class PointsUpdateForm extends StatefulWidget {
     required this.roundsPlayed,
     required this.onRoundUpdated,
     required this.onLeastPointsPlayerUpdated,
+    required this.scrollController,
   }) : super(key: key);
 
   @override
@@ -307,6 +305,14 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
   }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+    // Animate to the top of the screen
+    widget.scrollController?.animateTo(
+      0.0,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+
     // Validate all fields have values and are within range
     for (int i = 0; i < widget.playerKeys.length; i++) {
       if (controllers[i].text.isEmpty) {
@@ -371,7 +377,6 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
     });
 
     // Remove focus from all fields
-    FocusScope.of(context).unfocus();
   }
 
   @override

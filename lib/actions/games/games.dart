@@ -15,7 +15,7 @@ createGame() async {
 
   final gameRef = _database.child('users').child(userId).child('games').push();
 
-  await gameRef.set({'date': readableDate});
+  await gameRef.set({'date': readableDate, 'roundsPlayed': 0});
 
   return gameRef;
 }

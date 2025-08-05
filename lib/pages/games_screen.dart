@@ -82,12 +82,14 @@ class _GamesScreenState extends State<GamesScreen> {
                               SizedBox(height: 4),
                             ],
                           ),
-                          onTap: () {
+                          onTap: () async {
+                            print(game['roundsPlayed'].runtimeType);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => PointsScreen(
                                   playersRef: gamesRef.child('$key/players'),
+                                  roundsPlayed: game['roundsPlayed'] ?? 0,
                                 ),
                               ),
                             );
