@@ -51,7 +51,7 @@ class _GamesScreenState extends State<GamesScreen> {
               Text('Existing Games:'),
               Expanded(
                 child: StreamBuilder<DatabaseEvent>(
-                  stream: gamesRef.onValue,
+                  stream: gamesRef.orderByKey().onValue,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
@@ -60,16 +60,26 @@ class _GamesScreenState extends State<GamesScreen> {
                         snapshot.data!.snapshot.value == null) {
                       return Center(child: Text('No games found.'));
                     }
-                    final gamesMap = Map<String, dynamic>.from(
-                      snapshot.data!.snapshot.value as Map,
-                    );
-                    final gameKeys = gamesMap.keys.toList();
+
+                    final DataSnapshot snapshotValue = snapshot.data!.snapshot;
+
+                    // Extract data into a list of snapshots
+                    List<DataSnapshot> gamesList = [];
+                    for (final child in snapshotValue.children) {
+                      gamesList.add(child);
+                    }
+                    gamesList = gamesList.reversed.toList();
+
                     return ListView.builder(
-                      itemCount: gameKeys.length,
+                      itemCount: gamesList.length,
                       itemBuilder: (context, index) {
-                        final key = gameKeys[index];
-                        final game = Map<String, dynamic>.from(gamesMap[key]);
+                        final DataSnapshot gameSnapshot = gamesList[index];
+                        final key = gameSnapshot.key;
+                        final game = Map<String, dynamic>.from(
+                          gameSnapshot.value as Map,
+                        );
                         final date = game['date'] ?? 'No date';
+
                         return InkWell(
                           child: Column(
                             children: [
