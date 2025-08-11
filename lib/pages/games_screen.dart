@@ -93,7 +93,6 @@ class _GamesScreenState extends State<GamesScreen> {
                             ],
                           ),
                           onTap: () async {
-                            print(game['roundsPlayed'].runtimeType);
                             Navigator.push(
                               context,
                               MaterialPageRoute(

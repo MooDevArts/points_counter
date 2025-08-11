@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:keyboard_actions/keyboard_actions.dart';
 
 class PointsScreen extends StatefulWidget {
   final DatabaseReference playersRef;
@@ -32,6 +33,7 @@ class _PointsScreenState extends State<PointsScreen> {
   int roundsPlayed = 0;
   String? playerWithLeastPoints;
   final _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -39,183 +41,205 @@ class _PointsScreenState extends State<PointsScreen> {
     roundsPlayed = widget.roundsPlayed;
   }
 
+  KeyboardActionsConfig _buildConfig(BuildContext context) {
+    return KeyboardActionsConfig(
+      keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
+      keyboardBarColor: Colors.grey[850],
+      nextFocus: true,
+
+      actions: [
+        KeyboardActionsItem(
+          focusNode: _focusNode,
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Points Screen')),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 0),
-          child: StreamBuilder<DatabaseEvent>(
-            stream: widget.playersRef.onValue,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-                return Center(child: Text('No players found.'));
-              }
-              final playersMap = Map<String, dynamic>.from(
-                snapshot.data!.snapshot.value as Map,
-              );
-              final playerKeys = playersMap.keys.toList();
-
-              // Prepare data for the bar chart
-              final barGroups = <BarChartGroupData>[];
-              final playerNames = <String>[];
-              final playerPoints = <double>[];
-              for (int i = 0; i < playerKeys.length; i++) {
-                final key = playerKeys[i];
-                final value = playersMap[key];
-                if (value is Map) {
-                  final player = Map<String, dynamic>.from(value);
-                  final name = player['name'] ?? 'No name';
-                  final points = (player['points'] ?? 0).toDouble();
-                  playerNames.add(name);
-                  playerPoints.add(points);
-                  barGroups.add(
-                    BarChartGroupData(
-                      x: i,
-                      barRods: [
-                        BarChartRodData(
-                          toY: points,
-                          color: barColors[i % barColors.length],
-                          width: 24,
-                          borderRadius: BorderRadius.circular(6),
-                          // Show points value on top of each bar
-                          rodStackItems: [],
-                        ),
-                      ],
-                      showingTooltipIndicators: [0],
-                    ),
-                  );
+      body: KeyboardActions(
+        config: _buildConfig(context),
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 0),
+            child: StreamBuilder<DatabaseEvent>(
+              stream: widget.playersRef.onValue,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
                 }
-              }
+                if (!snapshot.hasData ||
+                    snapshot.data!.snapshot.value == null) {
+                  return Center(child: Text('No players found.'));
+                }
+                final playersMap = Map<String, dynamic>.from(
+                  snapshot.data!.snapshot.value as Map,
+                );
+                final playerKeys = playersMap.keys.toList();
 
-              if (barGroups.isEmpty) {
-                return Center(child: Text('No points data to display.'));
-              }
+                // Prepare data for the bar chart
+                final barGroups = <BarChartGroupData>[];
+                final playerNames = <String>[];
+                final playerPoints = <double>[];
+                for (int i = 0; i < playerKeys.length; i++) {
+                  final key = playerKeys[i];
+                  final value = playersMap[key];
+                  if (value is Map) {
+                    final player = Map<String, dynamic>.from(value);
+                    final name = player['name'] ?? 'No name';
+                    final points = (player['points'] ?? 0).toDouble();
+                    playerNames.add(name);
+                    playerPoints.add(points);
+                    barGroups.add(
+                      BarChartGroupData(
+                        x: i,
+                        barRods: [
+                          BarChartRodData(
+                            toY: points,
+                            color: barColors[i % barColors.length],
+                            width: 24,
+                            borderRadius: BorderRadius.circular(6),
+                            // Show points value on top of each bar
+                            rodStackItems: [],
+                          ),
+                        ],
+                        showingTooltipIndicators: [0],
+                      ),
+                    );
+                  }
+                }
 
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (roundsPlayed > 0)
-                    SizedBox(
-                      height: 320,
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 40),
-                        child: BarChart(
-                          BarChartData(
-                            barGroups: barGroups,
-                            borderData: FlBorderData(show: false),
-                            gridData: FlGridData(show: false),
-                            titlesData: FlTitlesData(
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: false,
-                                  reservedSize: 32,
-                                  getTitlesWidget: (value, meta) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 4.0,
-                                      ),
-                                      child: Text(
-                                        value.toInt().toString(),
-                                        style: TextStyle(fontSize: 10),
-                                        textAlign: TextAlign.right,
-                                      ),
-                                    );
-                                  },
-                                  interval: 1,
+                if (barGroups.isEmpty) {
+                  return Center(child: Text('No points data to display.'));
+                }
+
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (roundsPlayed > 0)
+                      SizedBox(
+                        height: 320,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 40),
+                          child: BarChart(
+                            BarChartData(
+                              barGroups: barGroups,
+                              borderData: FlBorderData(show: false),
+                              gridData: FlGridData(show: false),
+                              titlesData: FlTitlesData(
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: false,
+                                    reservedSize: 32,
+                                    getTitlesWidget: (value, meta) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 4.0,
+                                        ),
+                                        child: Text(
+                                          value.toInt().toString(),
+                                          style: TextStyle(fontSize: 10),
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      );
+                                    },
+                                    interval: 1,
+                                  ),
+                                ),
+                                rightTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                topTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: false),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget:
+                                        (double value, TitleMeta meta) {
+                                          final idx = value.toInt();
+                                          if (idx < 0 ||
+                                              idx >= playerNames.length)
+                                            return Container();
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 8.0,
+                                            ),
+                                            child: Text(
+                                              '${playerNames[idx]}',
+                                              style: TextStyle(fontSize: 12),
+                                            ),
+                                          );
+                                        },
+                                  ),
                                 ),
                               ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget:
-                                      (double value, TitleMeta meta) {
-                                        final idx = value.toInt();
-                                        if (idx < 0 ||
-                                            idx >= playerNames.length)
-                                          return Container();
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 8.0,
-                                          ),
-                                          child: Text(
-                                            '${playerNames[idx]}',
-                                            style: TextStyle(fontSize: 12),
+                              barTouchData: BarTouchData(
+                                enabled: false,
+
+                                touchTooltipData: BarTouchTooltipData(
+                                  tooltipMargin: 8,
+                                  // tooltipBgColor: Colors.black87,
+                                  tooltipPadding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  getTooltipItem:
+                                      (group, groupIndex, rod, rodIndex) {
+                                        return BarTooltipItem(
+                                          '${playerPoints[group.x].toInt()}',
+                                          TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10,
                                           ),
                                         );
                                       },
                                 ),
                               ),
                             ),
-                            barTouchData: BarTouchData(
-                              enabled: false,
-
-                              touchTooltipData: BarTouchTooltipData(
-                                tooltipMargin: 8,
-                                // tooltipBgColor: Colors.black87,
-                                tooltipPadding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                getTooltipItem:
-                                    (group, groupIndex, rod, rodIndex) {
-                                      return BarTooltipItem(
-                                        '${playerPoints[group.x].toInt()}',
-                                        TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                        ),
-                                      );
-                                    },
-                              ),
-                            ),
                           ),
                         ),
                       ),
-                    ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Rounds Played: $roundsPlayed',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  if (roundsPlayed > 0 && playerWithLeastPoints != null)
+                    SizedBox(height: 8),
                     Text(
-                      'Last Round Winner: $playerWithLeastPoints',
+                      'Rounds Played: $roundsPlayed',
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
-                  // SizedBox(height: 8),
-                  PointsUpdateForm(
-                    playerKeys: playerKeys,
-                    playerNames: playerNames,
-                    playersRef: widget.playersRef,
-                    roundsPlayed: roundsPlayed,
-                    onRoundUpdated: (int newRoundsPlayed) {
-                      setState(() {
-                        roundsPlayed = newRoundsPlayed;
-                      });
-                    },
-                    onLeastPointsPlayerUpdated: (String? player) {
-                      setState(() {
-                        playerWithLeastPoints = player;
-                      });
-                    },
-                    scrollController: _scrollController,
-                  ),
-                ],
-              );
-            },
+                    if (roundsPlayed > 0 && playerWithLeastPoints != null)
+                      Text(
+                        'Last Round Winner: $playerWithLeastPoints',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    // SizedBox(height: 8),
+                    PointsUpdateForm(
+                      playerKeys: playerKeys,
+                      playerNames: playerNames,
+                      playersRef: widget.playersRef,
+                      roundsPlayed: roundsPlayed,
+                      onRoundUpdated: (int newRoundsPlayed) {
+                        setState(() {
+                          roundsPlayed = newRoundsPlayed;
+                        });
+                      },
+                      onLeastPointsPlayerUpdated: (String? player) {
+                        setState(() {
+                          playerWithLeastPoints = player;
+                        });
+                      },
+                      scrollController: _scrollController,
+                      focusNode: _focusNode,
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -266,6 +290,7 @@ class PointsUpdateForm extends StatefulWidget {
   final Function(int) onRoundUpdated;
   final Function(String?) onLeastPointsPlayerUpdated;
   final ScrollController? scrollController;
+  final FocusNode focusNode;
 
   const PointsUpdateForm({
     Key? key,
@@ -276,6 +301,7 @@ class PointsUpdateForm extends StatefulWidget {
     required this.onRoundUpdated,
     required this.onLeastPointsPlayerUpdated,
     required this.scrollController,
+    required this.focusNode,
   }) : super(key: key);
 
   @override
@@ -406,6 +432,7 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
                   },
                 ),
                 TextFormField(
+                  focusNode: widget.focusNode,
                   controller: controllers[i],
                   keyboardType: TextInputType.numberWithOptions(
                     signed: false,
