@@ -35,6 +35,9 @@ class _PointsScreenState extends State<PointsScreen> {
   final _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
+  //list of 8 focus nodes
+  final List<FocusNode> _focusNodes = List.generate(8, (index) => FocusNode());
+
   @override
   void initState() {
     super.initState();
@@ -49,10 +52,76 @@ class _PointsScreenState extends State<PointsScreen> {
 
       actions: [
         KeyboardActionsItem(
-          focusNode: _focusNode,
+          focusNode: _focusNodes[0],
           displayArrows: true,
           displayActionBar: true,
           displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
+        ),
+        KeyboardActionsItem(
+          focusNode: _focusNodes[1],
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
+        ),
+        KeyboardActionsItem(
+          focusNode: _focusNodes[2],
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
+        ),
+        KeyboardActionsItem(
+          focusNode: _focusNodes[3],
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
+        ),
+        KeyboardActionsItem(
+          focusNode: _focusNodes[4],
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
+        ),
+        KeyboardActionsItem(
+          focusNode: _focusNodes[5],
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
+        ),
+        KeyboardActionsItem(
+          focusNode: _focusNodes[6],
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
+        ),
+        KeyboardActionsItem(
+          focusNode: _focusNodes[7],
+          displayArrows: true,
+          displayActionBar: true,
+          displayDoneButton: true,
+          onTapAction: () {
+            //check if this texfield is last, if not, pass focus to next textfield
+          },
         ),
       ],
     );
@@ -235,6 +304,7 @@ class _PointsScreenState extends State<PointsScreen> {
                       },
                       scrollController: _scrollController,
                       focusNode: _focusNode,
+                      focusNodes: _focusNodes,
                     ),
                   ],
                 );
@@ -291,6 +361,7 @@ class PointsUpdateForm extends StatefulWidget {
   final Function(String?) onLeastPointsPlayerUpdated;
   final ScrollController? scrollController;
   final FocusNode focusNode;
+  final List<FocusNode> focusNodes;
 
   const PointsUpdateForm({
     Key? key,
@@ -302,6 +373,7 @@ class PointsUpdateForm extends StatefulWidget {
     required this.onLeastPointsPlayerUpdated,
     required this.scrollController,
     required this.focusNode,
+    required this.focusNodes,
   }) : super(key: key);
 
   @override
@@ -432,7 +504,7 @@ class _PointsUpdateFormState extends State<PointsUpdateForm> {
                   },
                 ),
                 TextFormField(
-                  focusNode: widget.focusNode,
+                  focusNode: widget.focusNodes[i],
                   controller: controllers[i],
                   keyboardType: TextInputType.numberWithOptions(
                     signed: false,
